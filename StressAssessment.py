@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import joblib
 import json
+import os
 
 # =========================================================================
 # 1. 網頁基礎設定與快取加載
