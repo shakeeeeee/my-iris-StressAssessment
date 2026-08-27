@@ -339,11 +339,7 @@ html_code = f"""
 st.subheader("⏱️ 即時壓力評估儀表：")
 components.html(html_code, height=520)
 
-real_stress_raw = (final_gauge_score / 100) * 9.0 + 1.0
-st.info(f"💡 **AI 預測報告：** 當前受測者的即時壓力指標為 **{real_stress_raw:.2f} 分** (原始1~10分限制)。")
 
-
-st.write("### 🧠 受測者基本資料與評估輸入")
 
 
 
