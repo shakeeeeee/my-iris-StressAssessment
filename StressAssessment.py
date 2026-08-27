@@ -142,137 +142,187 @@ final_gauge_score = float(final_gauge_score)
 # 4. 前端客製化：動態注入 amCharts 4 程式碼（對齊 0~100 刻度與四大健康燈號）
 # =========================================================================
 html_code = f"""
-<style>
-#chartdiv {{
-  width: 100%;
-  height: 500px;
-  background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-}}
-</style>
-
-<!-- Resources -->
-<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+   <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-
-<script>
-am4core.ready(function() {{
-am4core.useTheme(am4themes_animated);
-
-var chartMin = 0;
-var chartMax = 100;
-var realModelScore = {final_gauge_score}; 
-
-var data = {{
-  score: realModelScore,
-  gradingData: [
-    {{ title: "HEALTHY", color: "#0f9747", lowScore: 0, highScore: 30 }},
-    {{ title: "MILD", color: "#b0d136", lowScore: 30, highScore: 55 }},
-    {{ title: "MODERATE", color: "#fdae19", lowScore: 55, highScore: 80 }},
-    {{ title: "SEVERE", color: "#ee1f25", lowScore: 80, highScore: 100 }}
-  ]
-}};
-
-function lookUpGrade(lookupScore, grades) {{
-  for (var i = 0; i < grades.length; i++) {{
-    if (grades[i].lowScore <= lookupScore && grades[i].highScore >= lookupScore) {{
-      return grades[i];
+    <style>
+    body {{
+      background-color: #0d1117; 
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
     }}
-  }}
-  return grades[grades.length - 1];
-}}
+    
+    #chartdiv {{
+      width: 100%;
+      height: 500px;
+      background: #0d1117; 
+      border-radius: 16px;
+      border: 1px solid #30363d; 
+      box-shadow: 0 0 30px rgba(0, 242, 254, 0.15); 
+      position: relative;
+    }}
+    </style>
+</head>
+<body>
+    
+    <svg style="position: absolute; width: 0; height: 0;">
+        <filter id="super-neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="6" result="blur" />
+            <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </svg>
 
-var chart = am4core.create("chartdiv", am4charts.GaugeChart);
-chart.hiddenState.properties.opacity = 0;
-chart.fontSize = 11;
-chart.innerRadius = am4core.percent(80);
-chart.resizable = true;
+    <div id="chartdiv"></div>
 
-var axis = chart.xAxes.push(new am4charts.ValueAxis());
-axis.min = chartMin;
-axis.max = chartMax;
-axis.strictMinMax = true;
-axis.renderer.radius = am4core.percent(80);
-axis.renderer.inside = true;
-axis.renderer.line.strokeOpacity = 0.1;
-axis.renderer.ticks.template.disabled = false;
-axis.renderer.ticks.template.strokeOpacity = 1;
-axis.renderer.ticks.template.strokeWidth = 0.5;
-axis.renderer.ticks.template.length = 5;
-axis.renderer.grid.template.disabled = true;
-axis.renderer.labels.template.radius = am4core.percent(15);
-axis.renderer.labels.template.fontSize = "0.9em";
+    <script>
+    am4core.ready(function() {{
+    am4core.useTheme(am4themes_animated);
 
-var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
-axis2.min = chartMin;
-axis2.max = chartMax;
-axis2.strictMinMax = true;
-axis2.renderer.labels.template.disabled = true;
-axis2.renderer.ticks.template.disabled = true;
-axis2.renderer.grid.template.disabled = false;
-axis2.renderer.grid.template.opacity = 0.5;
+    var chartMin = 0;
+    var chartMax = 100;
+    var realModelScore = {final_gauge_score}; 
 
-for (let grading of data.gradingData) {{
-  var range = axis2.axisRanges.create();
-  range.axisFill.fill = am4core.color(grading.color);
-  range.axisFill.fillOpacity = 0.8;
-  range.axisFill.zIndex = -1;
-  range.value = grading.lowScore;
-  range.endValue = grading.highScore;
-  range.grid.strokeOpacity = 0;
-  range.stroke = am4core.color(grading.color).lighten(-0.1);
-  range.label.inside = true;
-  range.label.text = grading.title.toUpperCase();
-  range.label.location = 0.5;
-  range.label.radius = am4core.percent(10);
-  range.label.fontSize = "0.9em";
-}}
+    var neonColors = {{
+      healthy: "#00f2fe",   
+      mild: "#00ff87",      
+      moderate: "#fdae19",  
+      severe: "#ff0055"     
+    }};
 
-var matchingGrade = lookUpGrade(data.score, data.gradingData);
+    var data = {{
+      score: realModelScore,
+      gradingData: [
+        {{ title: "HEALTHY", color: neonColors.healthy, lowScore: 0, highScore: 30 }},
+        {{ title: "MILD", color: neonColors.mild, lowScore: 30, highScore: 55 }},
+        {{ title: "MODERATE", color: neonColors.moderate, lowScore: 55, highScore: 80 }},
+        {{ title: "SEVERE", color: neonColors.severe, lowScore: 80, highScore: 100 }}
+      ]
+    }};
 
-var label = chart.radarContainer.createChild(am4core.Label);
-label.isMeasured = false;
-label.fontSize = "5em";
-label.x = am4core.percent(50);
-label.paddingBottom = 15;
-label.horizontalCenter = "middle";
-label.verticalCenter = "bottom";
-label.text = data.score.toFixed(1);
-label.fill = am4core.color(matchingGrade.color);
+    function lookUpGrade(lookupScore, grades) {{
+      for (var i = 0; i < grades.length; i++) {{
+        if (grades[i].lowScore <= lookupScore && grades[i].highScore >= lookupScore) {{
+          return grades[i];
+        }}
+      }}
+      return grades[grades.length - 1];
+    }}
 
-var label2 = chart.radarContainer.createChild(am4core.Label);
-label2.isMeasured = false;
-label2.fontSize = "2em";
-label2.horizontalCenter = "middle";
-label2.verticalCenter = "bottom";
-label2.text = matchingGrade.title.toUpperCase();
-label2.fill = am4core.color(matchingGrade.color);
+    var chart = am4core.create("chartdiv", am4charts.GaugeChart);
+    chart.hiddenState.properties.opacity = 0;
+    chart.fontSize = 11;
+    
+    chart.padding(40, 40, 40, 40);
+    chart.innerRadius = am4core.percent(75); 
+    chart.resizable = true;
 
-var hand = chart.hands.push(new am4charts.ClockHand());
-hand.axis = axis2;
-hand.innerRadius = am4core.percent(55);
-hand.startWidth = 8;
-hand.pin.disabled = true;
-hand.fill = am4core.color("#444");
-hand.stroke = am4core.color("#000");
+    var axis = chart.xAxes.push(new am4charts.ValueAxis());
+    axis.min = chartMin;
+    axis.max = chartMax;
+    axis.strictMinMax = true;
+    axis.renderer.radius = am4core.percent(100);
+    axis.renderer.inside = true;
+    axis.renderer.line.strokeOpacity = 0.1;
+    axis.renderer.line.stroke = am4core.color("#fff");
+    axis.renderer.ticks.template.disabled = false;
+    axis.renderer.ticks.template.strokeOpacity = 0.4;
+    axis.renderer.ticks.template.stroke = am4core.color("#58a6ff");
+    axis.renderer.ticks.template.length = 5;
+    axis.renderer.grid.template.disabled = true;
+    
+    axis.renderer.labels.template.radius = am4core.percent(12);
+    axis.renderer.labels.template.fontSize = "0.85em";
+    axis.renderer.labels.template.fill = am4core.color("#8b949e"); 
 
-setTimeout(function() {{
-    hand.showValue(data.score, 1500, am4core.ease.cubicOut);
-}}, 500);
+    var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+    axis2.min = chartMin;
+    axis2.max = chartMax;
+    axis2.strictMinMax = true;
+    axis2.renderer.labels.template.disabled = true;
+    axis2.renderer.ticks.template.disabled = true;
+    axis2.renderer.grid.template.disabled = false;
+    axis2.renderer.grid.template.opacity = 0.05;
 
-hand.events.on("positionchanged", function(){{
-  var currentVal = axis2.positionToValue(hand.currentPosition);
-  label.text = currentVal.toFixed(1);
-  var matchingGrade = lookUpGrade(currentVal, data.gradingData);
-  label2.text = matchingGrade.title.toUpperCase();
-  label2.fill = am4core.color(matchingGrade.color);
-  label.fill = am4core.color(matchingGrade.color);
-}});
-}});
-</script>
-<div id="chartdiv"></div>
+    
+    for (let grading of data.gradingData) {{
+      var range = axis2.axisRanges.create();
+      var baseColor = am4core.color(grading.color);
+      
+      range.axisFill.fill = baseColor;
+      range.axisFill.fillOpacity = 0.4; 
+      range.axisFill.zIndex = -1;
+      range.value = grading.lowScore;
+      range.endValue = grading.highScore;
+      range.grid.strokeOpacity = 0;
+      range.stroke = baseColor;
+      
+      
+    }}
+
+    var matchingGrade = lookUpGrade(data.score, data.gradingData);
+
+    
+    var label = chart.radarContainer.createChild(am4core.Label);
+    label.isMeasured = false;
+    label.fontSize = "5.5em";
+    label.fontFamily = "monospace"; 
+    label.x = am4core.percent(50);
+    label.paddingBottom = 25;
+    label.horizontalCenter = "middle";
+    label.verticalCenter = "bottom";
+    label.text = data.score.toFixed(1);
+    label.fill = am4core.color(matchingGrade.color);
+    label.dom.setAttribute("filter", "url(#super-neon-glow)");
+
+   
+    var label2 = chart.radarContainer.createChild(am4core.Label);
+    label2.isMeasured = false;
+    label2.fontSize = "1.4em";
+    label2.fontFamily = "monospace";
+    label2.fontWeight = "bold";
+    label2.horizontalCenter = "middle";
+    label2.verticalCenter = "bottom";
+    label2.text = "SYS_STATUS: " + matchingGrade.title;
+    label2.fill = am4core.color(matchingGrade.color);
+    label2.dom.setAttribute("filter", "url(#super-neon-glow)");
+
+   
+    var hand = chart.hands.push(new am4charts.ClockHand());
+    hand.axis = axis2;
+    hand.innerRadius = am4core.percent(50);
+    hand.startWidth = 5;
+    hand.endWidth = 1;
+    hand.pin.disabled = true;
+    hand.fill = am4core.color("#ffffff"); 
+    hand.stroke = am4core.color("#ffffff");
+    hand.dom.setAttribute("filter", "url(#super-neon-glow)");
+
+    setTimeout(function() {{
+        hand.showValue(data.score, 2000, am4core.ease.cubicOut);
+    }}, 400);
+
+    hand.events.on("positionchanged", function(){{
+      var currentVal = axis2.positionToValue(hand.currentPosition);
+      label.text = currentVal.toFixed(1);
+      var matchingGrade = lookUpGrade(currentVal, data.gradingData);
+      
+      var targetColor = am4core.color(matchingGrade.color);
+      label2.text = "SYS_STATUS: " + matchingGrade.title;
+      label2.fill = targetColor;
+      label.fill = targetColor;
+    }});
+    }});
+    </script>
+</body>
+</html>
 """
 
 # =========================================================================
