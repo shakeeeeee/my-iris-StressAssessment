@@ -7,6 +7,23 @@ import joblib
 import json
 import os
 
+st.markdown("""
+    <style>
+    /* 強制讓 Streamlit 的 columns 在小螢幕（手機）下也保持並排，不變成上下堆疊 */
+    [data-testid="stHorizontalBlock"] {
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+    }
+    [data-testid="stHorizontalBlock"] > div {
+        min-width: 45% !important; /* 確保左右各佔約一半 */
+        flex: 1 1 45% !important;
+    }
+    /* 優化手機端滑桿與核取方塊的間距，防止溢出 */
+    .stSlider, .stCheckbox, .stSelectbox {
+        margin-bottom: 10px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 # =========================================================================
 # 1. 網頁基礎設定與快取加載
 # =========================================================================
