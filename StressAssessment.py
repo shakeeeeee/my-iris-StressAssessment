@@ -146,9 +146,9 @@ html_code = f"""
 <html>
 <head>
     <meta charset="utf-8">
-   <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
     <style>
     body {{
       background-color: #0d1117; 
@@ -251,7 +251,6 @@ html_code = f"""
     axis2.renderer.grid.template.disabled = false;
     axis2.renderer.grid.template.opacity = 0.05;
 
-    
     for (let grading of data.gradingData) {{
       var range = axis2.axisRanges.create();
       var baseColor = am4core.color(grading.color);
@@ -263,13 +262,10 @@ html_code = f"""
       range.endValue = grading.highScore;
       range.grid.strokeOpacity = 0;
       range.stroke = baseColor;
-      
-      
     }}
 
     var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
-    
     var label = chart.radarContainer.createChild(am4core.Label);
     label.isMeasured = false;
     label.fontSize = "5.5em";
@@ -282,7 +278,13 @@ html_code = f"""
     label.fill = am4core.color(matchingGrade.color);
     label.dom.setAttribute("filter", "url(#super-neon-glow)");
 
-   
+    // 📍 插入點 1：初始加載時的動態中文狀態判斷
+    var initStatus = "";
+    if (data.score <= 30) initStatus = "🟢 系統狀態：良好 (HEALTHY)";
+    else if (data.score <= 55) initStatus = "🟡 系統狀態：輕度壓力 (MILD)";
+    else if (data.score <= 80) initStatus = "🟠 系統狀態：中度警戒 (MODERATE)";
+    else initStatus = "🔴 系統狀態：高度危險 (SEVERE)";
+
     var label2 = chart.radarContainer.createChild(am4core.Label);
     label2.isMeasured = false;
     label2.fontSize = "1.4em";
@@ -290,11 +292,10 @@ html_code = f"""
     label2.fontWeight = "bold";
     label2.horizontalCenter = "middle";
     label2.verticalCenter = "bottom";
-    label2.text = "SYS_STATUS: " + matchingGrade.title;
+    label2.text = initStatus; // 👈 使用初始中文狀態
     label2.fill = am4core.color(matchingGrade.color);
     label2.dom.setAttribute("filter", "url(#super-neon-glow)");
 
-   
     var hand = chart.hands.push(new am4charts.ClockHand());
     hand.axis = axis2;
     hand.innerRadius = am4core.percent(50);
@@ -313,9 +314,16 @@ html_code = f"""
       var currentVal = axis2.positionToValue(hand.currentPosition);
       label.text = currentVal.toFixed(1);
       var matchingGrade = lookUpGrade(currentVal, data.gradingData);
-      
       var targetColor = am4core.color(matchingGrade.color);
-      label2.text = "SYS_STATUS: " + matchingGrade.title;
+      
+      // 📍 插入點 2：手動滑桿即時連動擺動時的動態中文狀態判斷
+      var chiStatus = "";
+      if (currentVal <= 30) chiStatus = "🟢 系統狀態：良好 (HEALTHY)";
+      else if (currentVal <= 55) chiStatus = "🟡 系統狀態：輕度壓力 (MILD)";
+      else if (currentVal <= 80) chiStatus = "🟠 系統狀態：中度警戒 (MODERATE)";
+      else chiStatus = "🔴 系統狀態：高度危險 (SEVERE)";
+      
+      label2.text = chiStatus; // 👈 即時替換為中文狀態文字
       label2.fill = targetColor;
       label.fill = targetColor;
     }});
