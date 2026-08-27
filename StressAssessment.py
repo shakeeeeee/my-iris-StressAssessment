@@ -150,7 +150,7 @@ html_code = f"""
     <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
     <style>
-    body {{
+       body {{
       background-color: #0d1117; 
       margin: 0;
       padding: 0;
@@ -170,6 +170,7 @@ html_code = f"""
 </head>
 <body>
     
+    <!-- SVG 霓虹發光濾鏡 -->
     <svg style="position: absolute; width: 0; height: 0;">
         <filter id="super-neon-glow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="6" result="blur" />
@@ -221,51 +222,69 @@ html_code = f"""
     chart.fontSize = 11;
     
     chart.padding(40, 40, 40, 40);
-    chart.innerRadius = am4core.percent(75); 
+    chart.innerRadius = am4core.percent(85); /* 💡 再度推向邊緣，釋放內部空間 */
     chart.resizable = true;
 
+    // 💡 基礎軸 (刻度與外圍數字)
     var axis = chart.xAxes.push(new am4charts.ValueAxis());
     axis.min = chartMin;
     axis.max = chartMax;
     axis.strictMinMax = true;
-    axis.renderer.radius = am4core.percent(100);
+    axis.renderer.radius = am4core.percent(95);
     axis.renderer.inside = true;
-    axis.renderer.line.strokeOpacity = 0.1;
-    axis.renderer.line.stroke = am4core.color("#fff");
+    
+    // 💡 打造 HUD 電子雷達刻度細線
+    axis.renderer.line.strokeOpacity = 0.15;
+    axis.renderer.line.stroke = am4core.color("#58a6ff");
+    axis.renderer.line.strokeWidth = 1;
+    
     axis.renderer.ticks.template.disabled = false;
     axis.renderer.ticks.template.strokeOpacity = 0.4;
     axis.renderer.ticks.template.stroke = am4core.color("#58a6ff");
-    axis.renderer.ticks.template.length = 5;
-    axis.renderer.grid.template.disabled = true;
+    axis.renderer.ticks.template.length = 6;
+    
+    // 💡 開啟微弱的放射狀背景網格，營全息感
+    axis.renderer.grid.template.disabled = false;
+    axis.renderer.grid.template.opacity = 0.02;
+    axis.renderer.grid.template.stroke = am4core.color("#fff");
     
     axis.renderer.labels.template.radius = am4core.percent(12);
     axis.renderer.labels.template.fontSize = "0.85em";
+    axis.renderer.labels.template.fontFamily = "monospace";
     axis.renderer.labels.template.fill = am4core.color("#8b949e"); 
 
+    // 💡 彩色光軌專用第二軸
     var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
     axis2.min = chartMin;
     axis2.max = chartMax;
     axis2.strictMinMax = true;
     axis2.renderer.labels.template.disabled = true;
     axis2.renderer.ticks.template.disabled = true;
-    axis2.renderer.grid.template.disabled = false;
-    axis2.renderer.grid.template.opacity = 0.05;
+    axis2.renderer.grid.template.disabled = true;
 
+    // 💡 終極改版：將原本陽春的大粗色塊，改造成細緻的「發光霓虹流光軌道」
     for (let grading of data.gradingData) {{
       var range = axis2.axisRanges.create();
       var baseColor = am4core.color(grading.color);
       
       range.axisFill.fill = baseColor;
-      range.axisFill.fillOpacity = 0.4; 
+      range.axisFill.fillOpacity = 0.2; /* 💡 大幅降低底色塊亮度，使其成為背景科技淡光 */
       range.axisFill.zIndex = -1;
       range.value = grading.lowScore;
       range.endValue = grading.highScore;
-      range.grid.strokeOpacity = 0;
-      range.stroke = baseColor;
+      
+      // 💡 關鍵科技感代碼：為每個色塊加上一條一體成型、高飽和度的霓虹外框邊緣線（流光效果）
+      range.axisFill.stroke = baseColor;
+      range.axisFill.strokeWidth = 3;     /* 💡 粗細剛好，具備雷射感 */
+      range.axisFill.strokeOpacity = 1;   /* 💡 邊緣線保持 100% 亮眼發光 */
+      
+      // ✅ 讓這條彩色流光細軌也一起套用霓虹發光濾鏡！
+      range.axisFill.dom.setAttribute("filter", "url(#super-neon-glow)");
     }}
 
     var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
+    // 中央大數字 (科技感發光)
     var label = chart.radarContainer.createChild(am4core.Label);
     label.isMeasured = false;
     label.fontSize = "5.5em";
@@ -278,13 +297,7 @@ html_code = f"""
     label.fill = am4core.color(matchingGrade.color);
     label.dom.setAttribute("filter", "url(#super-neon-glow)");
 
-    // 📍 插入點 1：初始加載時的動態中文狀態判斷
-    var initStatus = "";
-    if (data.score <= 30) initStatus = "🟢 系統狀態：良好 (HEALTHY)";
-    else if (data.score <= 55) initStatus = "🟡 系統狀態：輕度壓力 (MILD)";
-    else if (data.score <= 80) initStatus = "🟠 系統狀態：中度警戒 (MODERATE)";
-    else initStatus = "🔴 系統狀態：高度危險 (SEVERE)";
-
+    // 中央系統狀態文字 (科技感發光)
     var label2 = chart.radarContainer.createChild(am4core.Label);
     label2.isMeasured = false;
     label2.fontSize = "1.4em";
@@ -292,10 +305,11 @@ html_code = f"""
     label2.fontWeight = "bold";
     label2.horizontalCenter = "middle";
     label2.verticalCenter = "bottom";
-    label2.text = initStatus; // 👈 使用初始中文狀態
+    label2.text = ""; 
     label2.fill = am4core.color(matchingGrade.color);
     label2.dom.setAttribute("filter", "url(#super-neon-glow)");
 
+    // HUD 白色亮晶指針 (科技感發光)
     var hand = chart.hands.push(new am4charts.ClockHand());
     hand.axis = axis2;
     hand.innerRadius = am4core.percent(50);
@@ -316,14 +330,13 @@ html_code = f"""
       var matchingGrade = lookUpGrade(currentVal, data.gradingData);
       var targetColor = am4core.color(matchingGrade.color);
       
-      // 📍 插入點 2：手動滑桿即時連動擺動時的動態中文狀態判斷
       var chiStatus = "";
-      if (currentVal <= 30) chiStatus = "🟢 系統狀態：良好 (HEALTHY)";
-      else if (currentVal <= 55) chiStatus = "🟡 系統狀態：輕度壓力 (MILD)";
-      else if (currentVal <= 80) chiStatus = "🟠 系統狀態：中度警戒 (MODERATE)";
-      else chiStatus = "🔴 系統狀態：高度危險 (SEVERE)";
+      if (currentVal <= 30) chiStatus = "🟢 SYSTEM_STATUS: 良好 (HEALTHY)";
+      else if (currentVal <= 55) chiStatus = "🟡 SYSTEM_STATUS: 輕度 (MILD)";
+      else if (currentVal <= 80) chiStatus = "🟠 SYSTEM_STATUS: 中度 (MODERATE)";
+      else chiStatus = "🔴 SYSTEM_STATUS: 高危 (SEVERE)";
       
-      label2.text = chiStatus; // 👈 即時替換為中文狀態文字
+      label2.text = chiStatus; 
       label2.fill = targetColor;
       label.fill = targetColor;
     }});
