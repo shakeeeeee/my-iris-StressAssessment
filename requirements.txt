@@ -1,4 +1,7 @@
-streamlit
-pandas
-plotly
-openpyxl
+streamlit 
+plotly.express 
+streamlit.components.v1 
+numpy 
+pandas 
+joblib
+json
