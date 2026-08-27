@@ -1,6 +1,0 @@
-[theme]
-primaryColor = "#00f2fe"       # 螢光藍（科技核心色）
-backgroundColor = "#0d1117"    # 深邃黑（類似 GitHub 的極深藍黑）
-secondaryBackgroundColor = "#161b22" # 側邊欄深灰色
-textColor = "#c9d1d9"          # 質感灰白（字體好讀不刺眼）
-font = "monospace"             # 💡 關鍵：改成等寬字體，瞬間有寫程式、儀表終端機的代碼感
