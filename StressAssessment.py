@@ -7,23 +7,6 @@ import joblib
 import json
 import os
 
-st.markdown("""
-    <style>
-    /* 強制讓 Streamlit 的 columns 在小螢幕（手機）下也保持並排，不變成上下堆疊 */
-    [data-testid="stHorizontalBlock"] {
-        flex-direction: row !important;
-        flex-wrap: wrap !important;
-    }
-    [data-testid="stHorizontalBlock"] > div {
-        min-width: 45% !important; /* 確保左右各佔約一半 */
-        flex: 1 1 45% !important;
-    }
-    /* 優化手機端滑桿與核取方塊的間距，防止溢出 */
-    .stSlider, .stCheckbox, .stSelectbox {
-        margin-bottom: 10px !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 # =========================================================================
 # 1. 網頁基礎設定與快取加載
 # =========================================================================
@@ -31,25 +14,15 @@ st.set_page_config(page_title="AI 智慧壓力風險評估系統", layout="cente
 
 @st.cache_resource
 def load_assets():
-    # 💡 獲取目前 pkl.py 所在的絕對資料夾路徑
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # 💡 組合出絕對路徑，確保雲端伺服器 100% 找得到
-    model_path = os.path.join(current_dir, 'lr_top8_model.pkl')
-    json_path = os.path.join(current_dir, 'top8_features.json')
-    
-    # 開始讀取
-    model = joblib.load(model_path)
-    with open(json_path, 'r', encoding='utf-8') as f:
+    model = joblib.load('lr_top8_model.pkl')
+    with open('top8_features.json', 'r', encoding='utf-8') as f:
         feature_names = json.load(f)
-        
     return model, feature_names
 
 try:
     model, top8_cols = load_assets()
 except Exception as e:
-    # 💡 這裡把具體的錯誤訊息 e 印出來，方便我們直接在線上看看到底是缺哪個檔
-    st.error(f"🚨 找不到模型檔案或欄位清單！詳細錯誤原因：{e}")
+    st.error("🚨 找不到模型檔案或欄位清單！請確保先在 Jupyter 執行過存檔腳本。")
     st.stop()
 
 
@@ -61,27 +34,62 @@ st.write("本系統由你調校完美的精簡版線性迴歸模型驅動，即�
 # =========================================================================
 # 2. 側邊欄：根據前 8 大特徵自動分流產生 UI
 # =========================================================================
+# =========================================================================
 st.sidebar.header("📊 請輸入受測者健康與行為指標")
+
+# 💡 注入頂級 CSS：讓側邊欄內部的滑桿與核取方塊具備動態自適應螢幕大小的能力
+st.sidebar.markdown("""
+    <style>
+    /* 讓側邊欄元件區塊變成彈性網格（Flexbox） */
+    [data-testid="stSidebarUserContent"] .element-container {
+        display: inline-block;
+        width: 100% !important;
+    }
+    
+    /* 當螢幕寬度大於 768px（電腦端）時，側邊欄內部的滑桿自動變為左右雙欄排列 */
+    @media (min-width: 768px) {
+        .stSlider, .stSelectbox, .stCheckbox {
+            width: 48% !important;
+            float: left;
+            margin-right: 2% !important;
+            margin-bottom: 15px !important;
+        }
+    }
+    
+    /* 當螢幕寬度小於 768px（手機端）時，自動恢復為 100% 直式單欄，防擠壓 */
+    @media (max-width: 767px) {
+        .stSlider, .stSelectbox, .stCheckbox {
+            width: 100% !important;
+            margin-bottom: 12px !important;
+        }
+    }
+    
+    /* 科技感微調：加大滑桿觸控軌道，方便手指觸控 */
+    .stSlider [data-baseweb="slider"] {
+        height: 6px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 user_inputs = {}
 
 name_mapping = {
     'bmi': '身體質量指數 (BMI)',
     'sleep_duration_hrs': '睡眠時數 (小時)',
     'sleep_quality_score': '睡眠品質分數 (0~100)',
-    'alcohol_units_before_bed': '睡前飲酒量 (公升)',
+    'alcohol_units_before_bed': '睡前飲酒量 (單位)',
     'cognitive_performance_score': '認知表現分數 (0~100)',
     'occupation_Retired': '是否退休 (Retired)',
     'occupation_Lawyer': '職業：律師 (Lawyer)',
     'occupation_Nurse': '職業：護理師 (Nurse)'
 }
 
-# 💡 核心線性轉換小工具：將原始值依比例精準投射到 0.2 ~ 0.8 區間
+# 💡 核心線性轉換小工具
 def rescale_to_model(val, min_val, max_val):
     if max_val == min_val:
         return 0.5
     return 0.2 + 0.6 * (val - min_val) / (max_val - min_val)
 
-# =========================================================================
 continuous_cols = []
 categorical_cols = []
 
@@ -101,9 +109,7 @@ for col in top8_cols:
 # 重新排序：連續型在前，類別型（是或否）在最下方
 sorted_top8_cols = continuous_cols + categorical_cols
 
-# =========================================================================
-# 🎨 迴圈繪製側邊欄 (改用 sorted_top8_cols)
-# =========================================================================
+# 💡 恢復原汁原味的單一迴圈：由 CSS 於前端瀏覽器動態控制視窗寬度，Python 邏輯保持最純粹乾淨
 for col in sorted_top8_cols:
     display_name = name_mapping.get(col, col)
     
@@ -132,22 +138,22 @@ for col in sorted_top8_cols:
         else:
             user_inputs[col] = st.sidebar.slider(f"📈 {display_name}", 0.2, 0.8, 0.5)
         
-    # B. 二元型特徵 (是或否，排在下方)
+    # B. 二元型特徵 (是或否)
     elif col in ['exercise_day', 'sleep_aid_used', 'shift_work', 'felt_rested']:
         choice = st.sidebar.selectbox(f"🔄 {display_name}", options=["否 (0)", "是 (1)"])
         user_inputs[col] = 1.0 if "是" in choice else 0.0
         
-    # C. 其餘 One-Hot 分類特徵 (職業勾選等，排在最下方)
+    # C. 其餘 One-Hot 分類特徵 (職業勾選等)
     else:
         choice = st.sidebar.checkbox(f"📍 {display_name}")
         user_inputs[col] = 0.8 if choice else 0.2
+
 # =========================================================================
 # 3. 後台即時 AI 預測與分數轉換邏輯
 # =========================================================================
 df_input = pd.DataFrame([user_inputs])[top8_cols]
 y_pred_raw = model.predict(df_input)
 
-# 將模型預測結果等比例放大投射到 amCharts 的 0~100 刻度
 if y_pred_raw <= 1.0:
     final_gauge_score = ((y_pred_raw - 0.2) / 0.6) * 100
 else:
