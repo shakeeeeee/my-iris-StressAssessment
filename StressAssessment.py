@@ -15,7 +15,8 @@ st.set_page_config(page_title="AI 智慧壓力風險評估系統", layout="cente
 @st.cache_resource
 def load_assets():
     model = joblib.load('lr_top8_model.pkl')
-
+    with open('top8_features.json', 'r', encoding='utf-8') as f:
+        feature_names = json.load(f)
     with open('all_occupations.json', 'r', encoding='utf-8') as f:
         all_occupations = json.load(f)
     
