@@ -28,18 +28,6 @@ except Exception as e:
     st.error("🚨 找不到模型檔案或欄位清單！請確保先在 Jupyter 執行過存檔腳本。")
     st.stop()
 
-@st.cache_resource
-def load_assets():
-    model = joblib.load('lr_top8_model.pkl')
-    with open('top8_features.json', 'r', encoding='utf-8') as f:
-        feature_names = json.load(f)
-    return model, feature_names
-
-try:
-    model, top8_cols = load_assets()
-except Exception as e:
-    st.error("🚨 找不到模型檔案或欄位清單！請確保先在 Jupyter 執行過存檔腳本。")
-    st.stop()
 
 
 
