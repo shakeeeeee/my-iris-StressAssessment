@@ -17,6 +17,21 @@ def load_assets():
     model = joblib.load('lr_top8_model.pkl')
     with open('top8_features.json', 'r', encoding='utf-8') as f:
         feature_names = json.load(f)
+    with open('all_occupations.json', 'r', encoding='utf-8') as f:
+        all_occupations = json.load(f)
+    return model, feature_names, all_occupations
+
+try:
+    model, top8_cols, all_occupation_cols = load_assets()
+except Exception as e:
+    st.error("🚨 找不到模型檔案或欄位清單！請確保先在 Jupyter 執行過存檔腳本。")
+    st.stop()
+
+@st.cache_resource
+def load_assets():
+    model = joblib.load('lr_top8_model.pkl')
+    with open('top8_features.json', 'r', encoding='utf-8') as f:
+        feature_names = json.load(f)
     return model, feature_names
 
 try:
@@ -80,8 +95,17 @@ name_mapping = {
     'alcohol_units_before_bed': '睡前飲酒量 (單位)',
     'cognitive_performance_score': '認知表現分數 (0~100)',
     'occupation_Retired': '是否退休 (Retired)',
-    'occupation_Lawyer': '職業：律師 (Lawyer)',
-    'occupation_Nurse': '職業：護理師 (Nurse)'
+    'occupation_Lawyer': '律師',
+    'occupation_Nurse': '護理師',
+    'occupation_Doctor': '醫生',
+    'occupation_Driver': '司機',
+    'occupation_Freelancer': '自由工作者',
+    'occupation_Homemaker': '家管',
+    'occupation_Manager': '經理',
+    'occupation_Sales': '業務',
+    'occupation_Software Engineer': '軟體工程師',
+    'occupation_Student': '學生',
+    'occupation_Teacher': '教師'
 }
 
 # 💡 核心線性轉換小工具
@@ -108,6 +132,18 @@ for col in top8_cols:
 
 # 重新排序：連續型在前，類別型（是或否）在最下方
 sorted_top8_cols = continuous_cols + categorical_cols
+
+binary_cols = ['exercise_day', 'sleep_aid_used', 'shift_work', 'felt_rested']
+occupation_cols_in_top8 = [c for c in categorical_cols if c not in binary_cols]
+
+occupation_display_names = [name_mapping.get(c, c.replace('occupation_', '')) for c in all_occupation_cols]
+occupation_options = ["無 / 其他"] + occupation_display_names
+selected_occupation = st.sidebar.selectbox("💼 職業別", options=occupation_options)
+
+selected_col_full = None
+if selected_occupation != "無 / 其他":
+    idx = occupation_display_names.index(selected_occupation)
+    selected_col_full = all_occupation_cols[idx]
 
 # 💡 恢復原汁原味的單一迴圈：由 CSS 於前端瀏覽器動態控制視窗寬度，Python 邏輯保持最純粹乾淨
 for col in sorted_top8_cols:
@@ -138,15 +174,14 @@ for col in sorted_top8_cols:
         else:
             user_inputs[col] = st.sidebar.slider(f"📈 {display_name}", 0.2, 0.8, 0.5)
         
-    # B. 二元型特徵 (是或否)
-    elif col in ['exercise_day', 'sleep_aid_used', 'shift_work', 'felt_rested']:
+      # B. 二元型特徵 (是或否)
+    elif col in binary_cols:
         choice = st.sidebar.selectbox(f"🔄 {display_name}", options=["否 (0)", "是 (1)"])
         user_inputs[col] = 1.0 if "是" in choice else 0.0
         
-    # C. 其餘 One-Hot 分類特徵 (職業勾選等)
-    else:
-        choice = st.sidebar.checkbox(f"📍 {display_name}")
-        user_inputs[col] = 0.8 if choice else 0.2
+    # C. 職業欄位（值由步驟 4 的下拉選單決定，這裡不再重複渲染 UI）
+    elif col in occupation_cols_in_top8:
+        user_inputs[col] = 0.8 if col == selected_col_full else 0.2
 
 # =========================================================================
 # 3. 後台即時 AI 預測與分數轉換邏輯
