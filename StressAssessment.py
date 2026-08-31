@@ -17,8 +17,7 @@ def load_assets():
     model = joblib.load('lr_top8_model.pkl')
     with open('top8_features.json', 'r', encoding='utf-8') as f:
         feature_names = json.load(f)
-    with open('all_occupations.json', 'r', encoding='utf-8') as f:
-        all_occupations = json.load(f)
+    
     return model, feature_names, all_occupations
 
 try:
