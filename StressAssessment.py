@@ -138,7 +138,7 @@ occupation_cols_in_top8 = [c for c in categorical_cols if c not in binary_cols]
 
 occupation_display_names = [name_mapping.get(c, c.replace('occupation_', '')) for c in all_occupation_cols]
 occupation_options = ["無 / 其他"] + occupation_display_names
-selected_occupation = st.sidebar.selectbox("💼 職業別", options=occupation_options)
+selected_occupation = st.sidebar.selectbox("💼 職業", options=occupation_options)
 
 selected_col_full = None
 if selected_occupation != "無 / 其他":
