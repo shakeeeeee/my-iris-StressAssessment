@@ -83,7 +83,7 @@ name_mapping = {
     'sleep_quality_score': '睡眠品質分數 (0~100)',
     'alcohol_units_before_bed': '睡前飲酒量 (單位)',
     'cognitive_performance_score': '認知表現分數 (0~100)',
-    'occupation_Retired': '是否退休 (Retired)',
+    'occupation_Retired': '退休',
     'occupation_Lawyer': '律師',
     'occupation_Nurse': '護理師',
     'occupation_Doctor': '醫生',
