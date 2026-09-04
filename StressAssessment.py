@@ -41,7 +41,7 @@ st.write("即時透過6大核心生活行為指標推算受測者的壓力指數
 # =========================================================================
 st.sidebar.header("📊 請輸入受測者健康與行為指標")
 
-# 💡 注入頂級 CSS：讓側邊欄內部的滑桿與核取方塊具備動態自適應螢幕大小的能力
+# 注入頂級 CSS：讓側邊欄內部的滑桿與核取方塊具備動態自適應螢幕大小的能力
 st.sidebar.markdown("""
     <style>
     /* 讓側邊欄元件區塊變成彈性網格（Flexbox） */
@@ -97,7 +97,7 @@ name_mapping = {
     'occupation_Teacher': '教師'
 }
 
-# 💡 核心線性轉換小工具
+# 核心線性轉換小工具
 def rescale_to_model(val, min_val, max_val):
     if max_val == min_val:
         return 0.5
@@ -134,7 +134,7 @@ if selected_occupation != "無 / 其他":
     idx = occupation_display_names.index(selected_occupation)
     selected_col_full = all_occupation_cols[idx]
 
-# 💡 恢復原汁原味的單一迴圈：由 CSS 於前端瀏覽器動態控制視窗寬度，Python 邏輯保持最純粹乾淨
+# 由 CSS 於前端瀏覽器動態控制視窗寬度，Python 邏輯保持最純粹乾淨
 for col in sorted_top8_cols:
     display_name = name_mapping.get(col, col)
     
@@ -269,10 +269,10 @@ html_code = f"""
     chart.fontSize = 11;
     
     chart.padding(40, 40, 40, 40);
-    chart.innerRadius = am4core.percent(85); /* 💡 再度推向邊緣，釋放內部空間 */
+    chart.innerRadius = am4core.percent(85); /* 再度推向邊緣，釋放內部空間 */
     chart.resizable = true;
 
-    // 💡 基礎軸 (刻度與外圍數字)
+    // 基礎軸 (刻度與外圍數字)
     var axis = chart.xAxes.push(new am4charts.ValueAxis());
     axis.min = chartMin;
     axis.max = chartMax;
@@ -280,7 +280,7 @@ html_code = f"""
     axis.renderer.radius = am4core.percent(95);
     axis.renderer.inside = true;
     
-    // 💡 打造 HUD 電子雷達刻度細線
+    // 打造 HUD 電子雷達刻度細線
     axis.renderer.line.strokeOpacity = 0.15;
     axis.renderer.line.stroke = am4core.color("#58a6ff");
     axis.renderer.line.strokeWidth = 1;
@@ -290,7 +290,7 @@ html_code = f"""
     axis.renderer.ticks.template.stroke = am4core.color("#58a6ff");
     axis.renderer.ticks.template.length = 6;
     
-    // 💡 開啟微弱的放射狀背景網格，營全息感
+    //  開啟微弱的放射狀背景網格，營全息感
     axis.renderer.grid.template.disabled = false;
     axis.renderer.grid.template.opacity = 0.02;
     axis.renderer.grid.template.stroke = am4core.color("#fff");
@@ -300,7 +300,7 @@ html_code = f"""
     axis.renderer.labels.template.fontFamily = "monospace";
     axis.renderer.labels.template.fill = am4core.color("#8b949e"); 
 
-    // 💡 彩色光軌專用第二軸
+    //  彩色光軌專用第二軸
     var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
     axis2.min = chartMin;
     axis2.max = chartMax;
@@ -309,23 +309,23 @@ html_code = f"""
     axis2.renderer.ticks.template.disabled = true;
     axis2.renderer.grid.template.disabled = true;
 
-    // 💡 終極改版：將原本陽春的大粗色塊，改造成細緻的「發光霓虹流光軌道」
+    
     for (let grading of data.gradingData) {{
       var range = axis2.axisRanges.create();
       var baseColor = am4core.color(grading.color);
       
       range.axisFill.fill = baseColor;
-      range.axisFill.fillOpacity = 0.2; /* 💡 大幅降低底色塊亮度，使其成為背景科技淡光 */
+      range.axisFill.fillOpacity = 0.2; /*  大幅降低底色塊亮度，使其成為背景科技淡光 */
       range.axisFill.zIndex = -1;
       range.value = grading.lowScore;
       range.endValue = grading.highScore;
       
-      // 💡 關鍵科技感代碼：為每個色塊加上一條一體成型、高飽和度的霓虹外框邊緣線（流光效果）
+      // 高飽和度的霓虹外框邊緣線（流光效果）
       range.axisFill.stroke = baseColor;
-      range.axisFill.strokeWidth = 3;     /* 💡 粗細剛好，具備雷射感 */
-      range.axisFill.strokeOpacity = 1;   /* 💡 邊緣線保持 100% 亮眼發光 */
+      range.axisFill.strokeWidth = 3;     /*  粗細剛好，具備雷射感 */
+      range.axisFill.strokeOpacity = 1;   /*  邊緣線保持 100% 亮眼發光 */
       
-      // ✅ 讓這條彩色流光細軌也一起套用霓虹發光濾鏡！
+     
       range.axisFill.dom.setAttribute("filter", "url(#super-neon-glow)");
     }}
 
@@ -396,7 +396,7 @@ html_code = f"""
 # =========================================================================
 # 5. 渲染網頁組件
 # =========================================================================
-st.subheader("⏱️ 即時壓力評估儀表：")
+st.subheader("⏱️ 即時壓力預測儀表：")
 components.html(html_code, height=520)
 
 
